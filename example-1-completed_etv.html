@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Cambridge Coffee Shops</title>
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <!--link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" /-->
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+	
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.5/leaflet.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.5/leaflet.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geocoder-mapzen/1.4.0/leaflet-geocoder-mapzen.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geocoder-mapzen/1.4.0/leaflet-geocoder-mapzen.js"></script>
+  
+  <!--script src='https://api.mapbox.com/mapbox.js/v2.4.0/mapbox.js'></script>
+  <link href='https://api.mapbox.com/mapbox.js/v2.4.0/mapbox.css' rel='stylesheet' /-->
+	
+	
+	<style>
+/*
+ * These CSS rules affect the tooltips within maps with the custom-popup
+ * class. See the full CSS for all customizable options:
+ * https://github.com/mapbox/mapbox.js/blob/001754177f3985c0e6b4a26e3c869b0c66162c99/theme/style.css#L321-L366
+ */
+.custom-popup .leaflet-popup-content-wrapper {
+  background:#2c3e50;
+  color:#fff;
+  font-size:16px;
+  line-height:24px;
+  }
+.custom-popup .leaflet-popup-content-wrapper a {
+  color:rgba(255,255,255,0.5);
+  }
+.custom-popup .leaflet-popup-tip-container {
+  width:30px;
+  height:15px;
+  }
+.custom-popup .leaflet-popup-tip {
+  border-left:15px solid transparent;
+  border-right:15px solid transparent;
+  border-top:15px solid #2c3e50;
+  }
+   
+</style>
+	
+	
+  </head>
+  <body>
+    <div id="wrapper">
+      <div id="header">
+        <h1>Caffeinated Cambridge</h1>
+      </div>
+      <div id="map"></div>
+      <div id="controls">
+        <div id="form">
+          <form action="">
+            <input type="radio" name="filter" value="all" checked>Show All Coffee Shops
+            <input type="radio" name="filter" value="starbucks">Starbucks Only
+          </form>
+        </div>
+        <div id="credits"><p>Coffee Shop Data from <a href="http://www.referenceusa.com/">ReferenceUSA</a><br>#webMapWorkshop - &copy;2015, Mike Foster</p></div>
+      </div>
+    </div>
+
+    <!--script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script>
+    // Create Leaflet map object
+    var map = L.map('map',{ center: [-0.9, -78.21], zoom: 6});
+
+    // Add Tile Layer basemap
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+      //attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+      maxZoom: 17,
+      minZoom: 6
+    }).addTo(map);
+	
+	// Mapzen geocoder
+	
+	var geocoder = L.control.geocoder('search-WizatGm', {
+	bounds: true,
+	placeholder: 'Search within the bounds',
+	fullWidth:650,
+	expanded: false,
+	markers: true,
+	focus: true
+	}).addTo(map);
+	
+	// focus the geocoder input
+	//geocoder.focus();
+	
+	// Re-sort control order so that geocoder is on top
+// geocoder._container is a reference to the geocoder's DOM element.
+geocoder._container.parentNode.insertBefore(geocoder._container, geocoder._container.parentNode.childNodes[0]);
+
+    // Global Variables
+    // Will go here
+    var coffeeShopLocations = null;
+
+    // Database Queries
+    // Get all coffee cafes from dataset
+    var sqlQuery = "SELECT * FROM accommodation";
+    // Get all coffee cafes that have name 'Starbucks'
+    var sqlQueryStarbucks = "SELECT * FROM accommodation WHERE class='Ecolodge'";
+
+    // Set CartoDB Username
+    var cartoDBUserName = "etv-explorer";
+
+    // Function to add call coffee shops
+    // Get CartoDB selection as GeoJSON and Add to Map
+    function showAll(){
+      $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+sqlQuery, function(data) {
+        coffeeShopLocations = L.geoJson(data,{
+		
+	       onEachFeature: function (feature, layer) {
+            layer.bindPopup('<img src=' +'"'+ feature.properties.image_url + '"' + '/> <br />' +'<p><b>' + feature.properties.name + '</b><br /><em>' + feature.properties.category + '</em></p>');
+            layer.cartodb_id=feature.properties.cartodb_id;
+          } 
+		  
+	
+		  
+        }).addTo(map);
+      });
+    };
+
+    // Run showAll function automatically when document loads
+    $( document ).ready(function() {
+      showAll();
+    });
+
+    // Function to Filter Starbucks
+    function showStarbucks(){
+      if(map.hasLayer(coffeeShopLocations)){
+        map.removeLayer(coffeeShopLocations);
+      };
+      $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+sqlQueryStarbucks, function(data) {
+        coffeeShopLocations = L.geoJson(data,{
+          onEachFeature: function (feature, layer) {
+            layer.bindPopup('<img src=' +'"' + feature.properties.image_url + '"' + '/> <br />' + '<p><b>' + feature.properties.name + '</b><br /><em>' + feature.properties.category + '</em></p>');
+            layer.cartodb_id=feature.properties.cartodb_id;
+          }
+        }).addTo(map);
+      });
+    };
+
+    // Event Listeners
+    $('input[value=starbucks]').click(function(){
+      showStarbucks();
+    });
+
+    $('input[value=all]').click(function(){
+      showAll();
+    });
+	
+	// Leaflet tile layers
+	
+	var mbAttr = 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+                                                                '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+                                                                'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+                                                mbUrl0= 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
+                                                mbUrl1 = 'https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpandmbXliNDBjZWd2M2x6bDk3c2ZtOTkifQ._QA7i5Mpkd_m30IGElHziw';
+ 
+                  var layer =  L.tileLayer(mbUrl0, {attribution: mbAttr}).addTo(map);
+                 
+                  var grayscale   = L.tileLayer(mbUrl1, {id: 'mapbox.light', attribution: mbAttr});
+				  
+                  var streets  = L.tileLayer(mbUrl1, {id: 'mapbox.streets',   attribution: mbAttr});
+                               
+                                var baseLayers = {
+                                                "Grayscale": grayscale,
+                                                "Streets": streets,
+                                                "OSM": layer
+                                                };
+                                               
+                                L.control.layers(baseLayers).addTo(map);
+	
+	
+	
+    </script>
+  </body>
+</html>
