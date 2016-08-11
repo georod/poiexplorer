@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Leaflet + CartoDB Example | Add CartoDB as layer</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <link rel="shortcut icon" href="http://cartodb.com/assets/favicon.ico" />
+    <style>
+      html, body, #map {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+    </style>
+    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.15/themes/css/cartodb.css" />
+  </head>
+  <body>
+    <div id="map"></div>
+    
+    <!-- include cartodb.js library -->
+    <script src="http://libs.cartocdn.com/cartodb.js/v3/3.15/cartodb.js"></script>
+
+    <script>
+      function main() {
+        var map = new L.Map('map', {
+          zoomControl: false,
+          center: [-0.9, -79.21],
+          zoom: 7
+        });
+        
+		
+		//var credits = L.control.attribution().addTo(map);
+//credits.addAttribution("© <a href='https://www.mapbox.com/map-feedback/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>");
+		
+		L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoicDZyb2RyaWciLCJhIjoiNXVwVEtWRSJ9.XPlVsZV1Uhv8iiDdj9N9lg', {
+         attribution: "© <a href='https://www.mapbox.com/map-feedback/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
+        }).addTo(map);
+		
+	
+		
+        cartodb.createLayer(map, 'https://etv-explorer.carto.com/api/v2/viz/6cb7a228-b554-4d05-a7b4-2823aa607da3/viz.json')
+            .addTo(map)
+         .on('done', function(layer) {
+          layer.setInteraction(true);
+          layer.on('featureOver', function(e, latlng, pos, data) {
+            cartodb.log.log(e, latlng, pos, data);
+          });
+          layer.on('error', function(err) {
+            cartodb.log.log('error: ' + err);
+          });
+        }).on('error', function() {
+          cartodb.log.log("some error occurred");
+        });
+      }
+      // you could use $(window).load(main);
+      window.onload = main;
+    </script>
+  </body>
+</html>
