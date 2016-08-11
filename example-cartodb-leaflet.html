@@ -29,14 +29,9 @@
         });
         
 		
-		//var credits = L.control.attribution().addTo(map);
-//credits.addAttribution("© <a href='https://www.mapbox.com/map-feedback/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>");
-		
-		L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoicDZyb2RyaWciLCJhIjoiNXVwVEtWRSJ9.XPlVsZV1Uhv8iiDdj9N9lg', {
+	L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoicDZyb2RyaWciLCJhIjoiNXVwVEtWRSJ9.XPlVsZV1Uhv8iiDdj9N9lg', {
          attribution: "© <a href='https://www.mapbox.com/map-feedback/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
         }).addTo(map);
-		
-	
 		
         cartodb.createLayer(map, 'https://etv-explorer.carto.com/api/v2/viz/6cb7a228-b554-4d05-a7b4-2823aa607da3/viz.json')
             .addTo(map)
